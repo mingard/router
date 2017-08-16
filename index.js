@@ -19,18 +19,49 @@ Router.prototype.add = function () {
   return this
 }
 
-Router.prototype.match = function (route) {
-  const parts = util.sanitizePath(route)
+Router.prototype.match = function (origin) {
+  const parts = util.sanitizePath(origin)
     .split('/')
   
-  const matches = this.matchParts(parts)
+  const matchingRoute = this.matchParts(parts)
 
-  console.log(route, matches)
+  if (!matchingRoute) {
+    return {
+      origin,
+      err: {
+        msg: 'No matching route found'
+      }
+    }
+  }
+
+  const match = matchingRoute
+    .map(route => util.isObject(route) ? Object.keys(route)[0] : route)
+    .join('/')
+  const params = this.getParamsFromUrl(matchingRoute, parts)
+
+  return {
+    origin,
+    match,
+    params
+  }
+}
+
+Router.prototype.getParamsFromUrl = function (route, urlParts) {
+  return Object.assign({}, 
+    ...route.map((part, index) => {
+      const schema = util.analyseSchema(part)
+
+      if (schema.isVar && urlParts[index]) {
+        return {[schema.value]: urlParts[index]}
+      }
+    })
+    .filter(Boolean)
+  )
 }
 
 Router.prototype.matchParts = function (parts) {
-  const routes = [...this.routes]
-  return routes.find(route => {
+  return this.routes.find(route => {
+
     return route
       .map((routePart, index) => this.matchPart(routePart, parts[index]))
       .every(Boolean)
@@ -38,20 +69,14 @@ Router.prototype.matchParts = function (parts) {
 }
 
 Router.prototype.matchPart = function (routeSchema, part) {
-  // Test match when preset variable options are set.
-  if (typeof routeSchema === 'object') {
-    const field = Object.keys(routeSchema)[0]
-
-    if (!Array.isArray(routeSchema[field])) return
-
-    return routeSchema[field].includes(part)
-  }
-
   // Create schema object of analysed route.
   const schema = util.analyseSchema(routeSchema)
 
   // Not a variable part. Must match exact string.
   if (!schema.isVar) return schema.value === part
+
+  // If schema has options, make sure current part is one of them.
+  if (schema.options) return schema.options.includes(part)
 
   // If variable is optional but isn't supplied.
   if (schema.isOptional && !part) return true
@@ -61,7 +86,6 @@ Router.prototype.matchPart = function (routeSchema, part) {
   // Variable is not optional and corresponding part is set.
   // Must exist, and be valid if a validator is defined.
   if (schema.isVar) return (part && (!validator || validator(part)))
-
 }
 
 module.exports = function () {

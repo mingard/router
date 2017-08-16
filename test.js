@@ -6,14 +6,15 @@ const getTitles = () => {
 
 const RouterInstance = function () {
   const router = new Router()
-    .add('article', ':id[ObjectId]', ':page?[Number]')
+    .add('article', ':page?[Number]')
+    .add('article', ':documentId[ObjectId]', ':page?[Number]')
     .add('article', {':title': getTitles()})
 
-  router.match('/article/593fee8cd8ab693784c139ac')
-  router.match('/article/593fee8cd8ab693784c139ac/2')
-  router.match('/article/2')
-  router.match('/article/bar')
-  router.match('/article/foo')
+  console.log(router.match('/article/593fee8cd8ab693784c139ac'))
+  console.log(router.match('/article/593fee8cd8ab693784c139ac/2'))
+  console.log(router.match('/article/2'))
+  console.log(router.match('/article/bar'))
+  console.log(router.match('/article/foo'))
 }
 
 module.exports = new RouterInstance()
