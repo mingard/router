@@ -52,7 +52,8 @@ Router.prototype.getParamsFromUrl = function (route, urlParts) {
       const schema = util.analyseSchema(part)
 
       if (schema.isVar && urlParts[index]) {
-        return {[schema.value]: urlParts[index]}
+        // Decoded parameter key/value.
+        return {[schema.value]: decodeURIComponent(urlParts[index])}
       }
     })
     .filter(Boolean)
