@@ -20,14 +20,15 @@ Router.prototype.add = function () {
 }
 
 Router.prototype.match = function (origin) {
-  const parts = util.sanitizePath(origin)
+  const url = util.sanitizePath(origin)
+  const parts = url
     .split('/')
   
   const matchingRoute = this.matchParts(parts)
 
   if (!matchingRoute) {
     return {
-      origin,
+      url,
       err: {
         msg: 'No matching route found'
       }
@@ -40,7 +41,7 @@ Router.prototype.match = function (origin) {
   const params = this.getParamsFromUrl(matchingRoute, parts)
 
   return {
-    origin,
+    url,
     match,
     params
   }
@@ -82,7 +83,8 @@ Router.prototype.matchPart = function (routeSchema, part) {
   // If variable is optional but isn't supplied.
   if (schema.isOptional && !part) return true
 
-  const validator = this.validators[schema.validator]
+  const validator = this.validators[schema.validator] ||
+    util.regexValidate(schema.validator)
 
   // Variable is not optional and corresponding part is set.
   // Must exist, and be valid if a validator is defined.

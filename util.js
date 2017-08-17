@@ -25,8 +25,13 @@ const analyseSchema = schema => {
   return map
 }
 
+const regexValidate = regex => {
+  return val => new RegExp(`${regex}$`, 'ig').test(val)
+}
+
 module.exports = {
   analyseSchema,
   isObject,
+  regexValidate,
   sanitizePath
 }
