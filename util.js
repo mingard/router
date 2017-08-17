@@ -9,7 +9,7 @@ const analyseSchema = schema => {
   const validator = validatorMatch && validatorMatch[1]
 
   const map = {
-    isOptional: key
+    optional: key
       .replace(/\[.*\]/g, '')
       .endsWith('?'),
     isVar: key.startsWith(':'),

@@ -13,13 +13,20 @@ const Router = function () {
   return this
 } 
 
-Router.prototype.add = function () {
+Router.prototype.addRoute = function () {
   this.routes.push([...arguments])
 
   return this
 }
 
+Router.prototype.addValidators = function (validators) {
+  Object.assign(this.validators, validators)
+
+  return this
+}
+
 Router.prototype.match = function (origin) {
+  console.log(this.validators)
   const url = util.sanitizePath(origin)
   const parts = url
     .split('/')
@@ -81,7 +88,7 @@ Router.prototype.matchPart = function (routeSchema, part) {
   if (schema.options) return schema.options.includes(part)
 
   // If variable is optional but isn't supplied.
-  if (schema.isOptional && !part) return true
+  if (schema.optional && !part) return true
 
   const validator = this.validators[schema.validator] ||
     util.regexValidate(schema.validator)
